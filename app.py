@@ -14,10 +14,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from config import settings
 from fastapi.staticfiles import StaticFiles
-from api.Base import router
+from core.Router import AllRouter
 from core.Events import startup, stopping
 from core.Exception import http_error_handler, http422_error_handler, unicorn_exception_handler, UnicornException
-from core.Middleware import BaseMiddleware
+from core.Middleware import Middleware
+from fastapi.templating import Jinja2Templates
 
 application = FastAPI(
     debug=settings.APP_DEBUG,
@@ -83,16 +84,20 @@ application.add_event_handler("shutdown", stopping(application))
 
 # 异常错误处理
 application.add_exception_handler(HTTPException, http_error_handler)
-application.add_exception_handler(RequestValidationError, http422_error_handler) # 请求参数错误
+application.add_exception_handler(RequestValidationError, http422_error_handler)
 application.add_exception_handler(UnicornException, unicorn_exception_handler)
-# application.add_exception_handler(DoesNotExist, Exception.mysql_does_not_exist)
-# application.add_exception_handler(IntegrityError, Exception.mysql_integrity_error)
-# application.add_exception_handler(ValidationError, Exception.mysql_validation_error)
-# application.add_exception_handler(OperationalError, Exception.mysql_operational_error)
+
+# 路由
+application.include_router(AllRouter)
 
 # 中间件
-application.add_middleware(BaseMiddleware)
-
+application.add_middleware(Middleware)
+application.add_middleware(
+    SessionMiddleware,
+    secret_key="session",
+    session_cookie="f_id",
+    # max_age=4
+)
 application.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -109,8 +114,6 @@ application.add_middleware(
     max_age=settings.SESSION_MAX_AGE
 )
 
-# 路由
-application.include_router(router)
 
 # 静态资源目录
 application.mount('/static', StaticFiles(directory=settings.STATIC_DIR), name="static")

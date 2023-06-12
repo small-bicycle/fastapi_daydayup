@@ -1,21 +1,18 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-'''
-@File  : Events.py
-@Author: YuanMing
-@Email : 15797642529@163.com
-@Date  : 2023/6/5
-@Desc  :  异常处理
-'''
+# -*- coding:utf-8 -*-
+"""
+@Created on : 2022/4/22 22:02
+@Author: binkuolo
+@Des: 中间件
+"""
 
 import time
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Receive, Scope, Send, Message
 from fastapi import Request
-from core.Utils import random_str
+from core.Helper import random_str
 
 
-class BaseMiddleware:
+class Middleware:
     """
     Middleware
     """
@@ -27,7 +24,7 @@ class BaseMiddleware:
         self.app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        if scope["type"] != "http":  # 非http协议
+        if scope["type"] != "http":  # pragma: no cover
             await self.app(scope, receive, send)
             return
         start_time = time.time()

@@ -26,13 +26,11 @@ async def http_error_handler(_: Request, exc: HTTPException):
         "code": exc.status_code,
         "message": exc.detail,
         "data": exc.detail
-    }, status_code=exc.status_code, headers=exc.headers)
+    }, status_code=exc.status_code)
 
 
 class UnicornException(Exception):
-    """
-        启动器异常
-    """
+
     def __init__(self, code, errmsg, data=None):
         """
         失败返回格式
@@ -67,11 +65,10 @@ async def http422_error_handler(_: Request, exc: Union[RequestValidationError, V
     :param exc:
     :return:
     """
-    print("[422]", exc.errors())
     return JSONResponse(
         {
             "code": status.HTTP_422_UNPROCESSABLE_ENTITY,
-            "message": f"数据校验错误 {exc.errors()}",
+            "message": f"参数校验错误 {exc.errors()}",
             "data": exc.errors(),
         },
         status_code=422,
